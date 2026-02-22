@@ -408,10 +408,11 @@ export default function App() {
   const handleCategorySelect = (cat: Category | null) => {
     setActiveCategory(cat);
     fetchMovies(cat);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
-    <div className="min-h-screen bg-black text-white selection:bg-brand selection:text-white">
+    <div className="min-h-screen bg-transparent text-white selection:bg-brand selection:text-white">
       <Navbar 
         onSearch={handleSearch} 
         onCategorySelect={handleCategorySelect}
@@ -421,7 +422,12 @@ export default function App() {
       <main className="pt-24 pb-12">
         {/* Hero Section (Only on Home) */}
         {!activeCategory && trendingMovies.length > 0 && (
-          <section className="mb-12 px-4 sm:px-6 lg:px-8">
+          <motion.section 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="mb-12 px-4 sm:px-6 lg:px-8"
+          >
             <div className="flex items-center gap-2 mb-6">
               <TrendingUp className="text-brand w-5 h-5" />
               <h2 className="text-xl font-display font-bold uppercase tracking-wider">Trending Now</h2>
@@ -433,37 +439,60 @@ export default function App() {
                 </div>
               ))}
             </div>
-          </section>
+          </motion.section>
         )}
 
         {/* Movie Grid */}
         <section className="px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between mb-8">
+          <motion.div 
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            key={activeCategory || 'all'}
+            className="flex items-center justify-between mb-8"
+          >
             <h2 className="text-2xl font-display font-bold">
               {activeCategory ? activeCategory : 'Latest Uploads'}
             </h2>
             <div className="text-sm text-white/40">
               {movies.length} Movies found
             </div>
-          </div>
+          </motion.div>
 
           {loading ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-6">
               {[...Array(12)].map((_, i) => (
-                <div key={i} className="aspect-[2/3] bg-zinc-900 rounded-lg animate-pulse" />
+                <div key={i} className="aspect-[2/3] bg-zinc-900/50 rounded-lg animate-pulse border border-white/5" />
               ))}
             </div>
           ) : movies.length > 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-6">
-              {movies.map(movie => (
-                <MovieCard key={movie.id} movie={movie} onClick={() => setSelectedMovie(movie)} />
-              ))}
-            </div>
+            <motion.div 
+              layout
+              className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-6"
+            >
+              <AnimatePresence mode="popLayout">
+                {movies.map((movie, index) => (
+                  <motion.div
+                    key={movie.id}
+                    layout
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    transition={{ duration: 0.3, delay: index * 0.05 }}
+                  >
+                    <MovieCard movie={movie} onClick={() => setSelectedMovie(movie)} />
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </motion.div>
           ) : (
-            <div className="text-center py-20">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-center py-20"
+            >
               <Film className="w-12 h-12 text-white/10 mx-auto mb-4" />
               <p className="text-white/40">No movies found in this category.</p>
-            </div>
+            </motion.div>
           )}
         </section>
       </main>
